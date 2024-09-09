@@ -5,3 +5,4 @@ pickle-mixin
 scikit-learn
 pandas
 keras
+nvidia-tensorrt
