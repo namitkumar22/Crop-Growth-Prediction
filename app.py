@@ -23,6 +23,7 @@ def load_model_and_transformers():
 
         # Load pre-trained TensorFlow model
         model = tf.keras.models.load_model('plant_growth_model.h5')
+        model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
         return model, ct, sc
     except FileNotFoundError as e:
         st.error(f"File not found: {e}. Please ensure the model and transformer files are uploaded correctly.")
