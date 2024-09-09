@@ -2,7 +2,7 @@ streamlit
 numpy
 tensorflow
 pickle-mixin
-scikit-learn
+scikit-learn==1.3.2
 pandas
 keras
 nvidia-tensorrt
