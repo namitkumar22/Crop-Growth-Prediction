@@ -3,3 +3,5 @@ numpy
 tensorflow
 pickle-mixin
 scikit-learn
+pandas
+base64
