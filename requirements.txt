@@ -2,3 +2,4 @@ streamlit
 numpy
 tensorflow
 pickle-mixin
+scikit-learn
