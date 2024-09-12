@@ -5,7 +5,6 @@ import tensorflow as tf
 import base64
 import os
 import weather_data as wd
-from streamlit_extras.let_it_rain import rain
 
 # Suppress TensorFlow warnings (including TensorRT)
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
