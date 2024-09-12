@@ -96,7 +96,7 @@ soil_type = st.selectbox('Soil Type (मिट्टी का प्रका�
 sunlight_hours = st.number_input('Sunlight Hours (सूरज की रोशनी के घंटे)', min_value=0.0, max_value=24.0, value=8.0)
 water_frequency = st.selectbox('Water Frequency (पानी देने की आवृत्ति)', ['daily (रोजाना)', 'bi-weekly (सप्ताह में दो बार)', 'weekly (साप्ताहिक)'])
 fertilizer_type = st.selectbox('Fertilizer Type (उर्वरक प्रकार)', ['none (कोई नहीं)', 'chemical (रासायनिक)', 'organic (जैविक)'])
-temperature = st.number_input('Temperature (तापमान °C)', min_value=-10.0, max_value=50.0, value=25.0)
+temperature = st.number_input('Temperature (तापमान °C)', min_value=-10.0, max_value=60.0, value=25.0)
 humidity = st.number_input('Humidity (%) (नमी)', min_value=0.0, max_value=100.0, value=40.0)
 
 # Mapping Hindi terms back to model-compatible values
@@ -129,7 +129,7 @@ if st.button("Predict (अनुमान लगाएं)"):
         # Validate input ranges
         if not (0 <= sunlight_hours <= 24):
             st.error("Sunlight hours must be between 0 and 24.")
-        elif not (-10 <= temperature <= 50):
+        elif not (-10 <= temperature <= 60):
             st.error("Temperature must be between -10°C and 50°C.")
         elif not (0 <= humidity <= 100):
             st.error("Humidity must be between 0% and 100%.")
