@@ -5,4 +5,4 @@ pickle-mixin
 scikit-learn==1.3.2
 pandas
 keras
-nvidia-tensorrt
+streamlit_extras

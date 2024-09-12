@@ -4,14 +4,24 @@ import pickle
 import tensorflow as tf
 import base64
 import os
+import weather_data as wd
+from streamlit_extras.let_it_rain import rain
 
 # Suppress TensorFlow warnings (including TensorRT)
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'  # Suppresses INFO and WARNING messages
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 # Set the page title and favicon (plant logo)
 st.set_page_config(page_title="AgriBazaar", page_icon="🌱")
 
-# Ensure models are loaded only once to improve performance
+# CSS to remove the Streamlit menu and footer
+hide_st_style = """
+    <style>
+    #MainMenu {visibility: hidden;}
+    footer {visibility: hidden;}
+    </style>
+"""
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
 @st.cache_resource
 def load_model_and_transformers():
     try:
@@ -26,13 +36,13 @@ def load_model_and_transformers():
         model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='binary_crossentropy', metrics=['accuracy'])
         return model, ct, sc
     except FileNotFoundError as e:
-        st.error(f"File not found: {e}. Please ensure the model and transformer files are uploaded correctly.")
+        st.error(f"File not found: {e}. Ensure files are uploaded correctly. (फ़ाइल नहीं मिली: {e}. कृपया सुनिश्चित करें कि फ़ाइलें सही ढंग से अपलोड की गई हैं।)")
         return None, None, None
     except Exception as e:
-        st.error(f"Unexpected error while loading model or transformers: {e}")
+        st.error(f"Error loading model or transformers: {e} (मॉडल या ट्रांसफार्मर्स लोड करते समय त्रुटि: {e})")
         return None, None, None
 
-# Load the model and transformers once
+# Load the model and transformers
 model, ct, sc = load_model_and_transformers()
 
 # Function to add background animation using a farm/plant-based GIF
@@ -87,70 +97,73 @@ def add_bg_animation(file_path):
 # Call the function to add background animation (change to a valid path)
 add_bg_animation("1.png")
 
-# Title and description
-st.title("🌱 AgriBazaar: Plant Growth Prediction (फसल वृद्धि की भविष्यवाणी)")
-st.write("Enter the details below to predict the chances of crop growth: (नीचे जानकारी दर्ज करें ताकि फसल वृद्धि की संभावना का अनुमान लगाया जा सके)")
+st.title("🌱 AgriBazaar: Plant Growth Prediction (फसल वृद्धि भविष्यवाणी)")
+st.write("Enter the details below to predict crop growth chances (फसल वृद्धि की संभावना जानने के लिए विवरण भरें)")
 
-# Input fields for prediction with Hindi translations
-soil_type = st.selectbox('Soil Type (मिट्टी का प्रकार)', ['clay (मिट्टी)', 'sandy (रेतीली)', 'loam (दोमट)'])
-sunlight_hours = st.number_input('Sunlight Hours (सूरज की रोशनी के घंटे)', min_value=0.0, max_value=24.0, value=8.0)
-water_frequency = st.selectbox('Water Frequency (पानी देने की आवृत्ति)', ['daily (रोजाना)', 'bi-weekly (सप्ताह में दो बार)', 'weekly (साप्ताहिक)'])
-fertilizer_type = st.selectbox('Fertilizer Type (उर्वरक प्रकार)', ['none (कोई नहीं)', 'chemical (रासायनिक)', 'organic (जैविक)'])
-temperature = st.number_input('Temperature (तापमान °C)', min_value=-10.0, max_value=60.0, value=25.0)
-humidity = st.number_input('Humidity (%) (नमी)', min_value=0.0, max_value=100.0, value=40.0)
+# Input fields
+person_location = st.text_input("Your Location (आपका स्थान) [For fetching weather info (मौसम जानकारी के लिए)]", placeholder="Any village, district, city name (कोई गाँव, जिला, शहर का नाम)").lower()
 
-# Mapping Hindi terms back to model-compatible values
-soil_type_mapping = {
-    'clay (मिट्टी)': 'clay',
-    'sandy (रेतीली)': 'sandy',
-    'loam (दोमट)': 'loam'
-}
-
-water_frequency_mapping = {
-    'daily (रोजाना)': 'daily',
-    'bi-weekly (सप्ताह में दो बार)': 'bi-weekly',
-    'weekly (साप्ताहिक)': 'weekly'
-}
-
-fertilizer_type_mapping = {
-    'none (कोई नहीं)': 'none',
-    'chemical (रासायनिक)': 'chemical',
-    'organic (जैविक)': 'organic'
-}
-
-# Error Handling for input values
-if st.button("Predict (अनुमान लगाएं)"):
+if person_location:
     try:
-        # Convert input to English terms for the model
-        soil_type_value = soil_type_mapping[soil_type]
-        water_frequency_value = water_frequency_mapping[water_frequency]
-        fertilizer_type_value = fertilizer_type_mapping[fertilizer_type]
+        temperature_auto, humidity_auto, sunlight_hours_auto = wd.get_weather_data(person_location)
 
-        # Validate input ranges
-        if not (0 <= sunlight_hours <= 24):
-            st.error("Sunlight hours must be between 0 and 24.")
-        elif not (-10 <= temperature <= 60):
-            st.error("Temperature must be between -10°C and 50°C.")
-        elif not (0 <= humidity <= 100):
-            st.error("Humidity must be between 0% and 100%.")
-        else:
-            # Prepare input data
-            input_data = [[soil_type_value, sunlight_hours, water_frequency_value, fertilizer_type_value, temperature, humidity]]
+        # Show input fields only after weather data is successfully fetched
+        temperature = st.number_input('Temperature (तापमान °C)', min_value=-10.0, max_value=60.0, value=temperature_auto, help="Automatically fetched (स्वतः प्राप्त)")
+        humidity = st.number_input('Humidity (%) (नमी)', min_value=0.0, max_value=100.0, value=humidity_auto, help="Automatically fetched (स्वतः प्राप्त)")
+        sunlight_hours = st.number_input('Sunlight Hours (सूरज की रोशनी के घंटे)', min_value=0.0, max_value=24.0, value=sunlight_hours_auto, help="Automatically fetched (स्वतः प्राप्त)")
 
-            # Ensure transformers and model are loaded correctly
-            if ct is None or sc is None or model is None:
-                st.error("Error loading the model or transformers. Please check your files.")
+        # Select boxes with initial empty value
+        soil_type = st.selectbox('Soil Type (मिट्टी का प्रकार)', ['', 'clay (मिट्टी)', 'sandy (रेतीली)', 'loam (दोमट)'])
+        water_frequency = st.selectbox('Water Frequency (पानी देने की आवृत्ति)', ['', 'daily (रोजाना)', 'bi-weekly (सप्ताह में दो बार)', 'weekly (साप्ताहिक)'])
+        fertilizer_type = st.selectbox('Fertilizer Type (उर्वरक प्रकार)', ['', 'none (कोई नहीं)', 'chemical (रासायनिक)', 'organic (जैविक)'])
+
+        # Mappings for input
+        soil_type_mapping = {
+            'clay (मिट्टी)': 'clay',
+            'sandy (रेतीली)': 'sandy',
+            'loam (दोमट)': 'loam'
+        }
+
+        water_frequency_mapping = {
+            'daily (रोजाना)': 'daily',
+            'bi-weekly (सप्ताह में दो बार)': 'bi-weekly',
+            'weekly (साप्ताहिक)': 'weekly'
+        }
+
+        fertilizer_type_mapping = {
+            'none (कोई नहीं)': 'none',
+            'chemical (रासायनिक)': 'chemical',
+            'organic (जैविक)': 'organic'
+        }
+
+        # Check if required inputs are provided before processing
+        if st.button('Predict Growth Chance (फसल वृद्धि की संभावना बताएं)'):
+            if not person_location:
+                st.error("Location is required for fetching weather data. (मौसम जानकारी के लिए स्थान भरना आवश्यक है।)")
+            elif soil_type == '' or water_frequency == '' or fertilizer_type == '':
+                st.error("Please fill in all the required fields. (कृपया सभी आवश्यक फ़ील्ड भरें।)")
             else:
-                # Transform and scale the input data
-                input_data_transformed = ct.transform(input_data)
-                input_data_scaled = sc.transform(input_data_transformed)
+                try:
+                    # Convert selected values for the model
+                    soil_type_value = soil_type_mapping.get(soil_type)
+                    water_frequency_value = water_frequency_mapping.get(water_frequency)
+                    fertilizer_type_value = fertilizer_type_mapping.get(fertilizer_type)
 
-                # Make the prediction
-                predicted_chance = model.predict(input_data_scaled)[0][0] * 100
+                    # Prepare input data
+                    input_data = [[soil_type_value, sunlight_hours, water_frequency_value, fertilizer_type_value, temperature, humidity]]
 
-                # Display the result
-                st.success(f"The chance of crop growth is {predicted_chance:.2f}% (फसल वृद्धि की संभावना {predicted_chance:.2f}% है)")
-    except KeyError as e:
-        st.error(f"Key Error: {e}. Please ensure valid selections are made.")
+                    # Transform and scale input data
+                    input_data_transformed = ct.transform(input_data)
+                    input_data_scaled = sc.transform(input_data_transformed)
+
+                    # Make prediction
+                    predicted_chance = model.predict(input_data_scaled)[0][0] * 100
+
+                    # Display result
+                    st.success(f"The chance of crop growth is {predicted_chance:.2f}% (फसल वृद्धि की संभावना {predicted_chance:.2f}% है)")
+                except Exception as e:
+                    st.error(f"Error during prediction: {e} (भविष्यवाणी करते समय त्रुटि: {e})")
     except Exception as e:
-        st.error(f"An unexpected error occurred: {e}")
+        st.info(f"Please Enter a valid location or any nearest city (कृपया एक सही स्थान या नजदीकी शहर का नाम डालें)")
+else:
+    st.info("Please enter a location to fetch weather information. (मौसम जानकारी प्राप्त करने के लिए कृपया एक स्थान भरें।)")
