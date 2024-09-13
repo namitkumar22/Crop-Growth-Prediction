@@ -109,7 +109,7 @@ if person_location:
         # Show input fields only after weather data is successfully fetched
         temperature = st.number_input('Temperature (तापमान °C)', min_value=-10.0, max_value=60.0, value=temperature_auto, help="Automatically fetched (स्वतः प्राप्त)")
         humidity = st.number_input('Humidity (%) (नमी)', min_value=0.0, max_value=100.0, value=humidity_auto, help="Automatically fetched (स्वतः प्राप्त)")
-        sunlight_hours = st.number_input('Sunlight Hours (सूरज की रोशनी के घंटे)', min_value=0.0, max_value=10.0, value=sunlight_hours_auto, help="Automatically fetched (स्वतः प्राप्त) [Values More than 10 may lead to inconsistent results (10 से अधिक मान असंगत परिणाम दे सकते हैं)]")
+        sunlight_hours = st.number_input('Sunlight Hours (सूरज की रोशनी के घंटे)', min_value=0.0, max_value=24.0, value=sunlight_hours_auto, help="Automatically fetched (स्वतः प्राप्त) [Values More than 10 may lead to inconsistent results (10 से अधिक मान असंगत परिणाम दे सकते हैं)]")
 
         # Select boxes with initial empty value
         soil_type = st.selectbox('Soil Type (मिट्टी का प्रकार)', ['', 'clay (मिट्टी)', 'sandy (रेतीली)', 'loam (दोमट)'])
